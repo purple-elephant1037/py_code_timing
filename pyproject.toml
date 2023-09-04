@@ -20,3 +20,5 @@ classifiers = [
 
 [project.urls]
 "Homepage" = "https://github.com/purple-elephant1037/py_code_timing"
+"Test code" = "https://github.com/purple-elephant1037/py_code_timing/tree/master/tests"
+
