@@ -10,7 +10,6 @@ import random
 
 import py_code_timing as pct
 
-from _debug import *
 
 #===============================================================================
 # Pizza Making
@@ -134,30 +133,29 @@ def test1(RUNS):
     say("Display: {}", tobj.display_stats())
     nl(2)
 
-
+  
 def test2(runs):
     """ test function """
     
-    say("Test 2 -- Testing autostart behaviour and with-statement")
+    say("Test 2 -- Testing with-statement - runs = {}", runs)
     nl(1)
     
-    with pct.CodeTiming(autostart=True) as tobj:
+    for i in range(runs):
+        say("Run {} of {}", i+1, runs)
         
-        for i in range(runs):
-            say("Run {} of {}", i+1, runs)
-            say("Simple timing starts ....")
+        with pct.CodeTiming("TestCode"):
             
+            say("First timing - 1 sec")
             time_passes(1)
-            say("Timing sampled: {}", tobj.sample())
             
+            say("Second timing - 1.5 sec")
             time_passes(1.5)
-            say("Timing done: {}", tobj.elapsed())
             nl(2)
+    
+    say("Stats:   {}", pct.CodeTiming.get_stats_by_name("TestCode"))
+    say("Display: {}", pct.CodeTiming.display_stats_by_name("TestCode"))
         
-        say("Stats:   {}", tobj.get_stats())
-        say("Display: {}", tobj.display_stats())
-        
-    nl(2)    
+    nl(2)
 
 def test3(runs):
     """ test function """
@@ -265,6 +263,39 @@ def nesting_test():
     say("Display: {}", tobj.display_stats())
     nl(2)
 
+    
+
+#-------------------------------------------------------------------------------
+# Autostart behaviour
+#-------------------------------------------------------------------------------
+def autostart_test():
+    """
+    Tests autostart behaviour
+    
+    --- timing of inner blocks are ignored
+    --- Only outermost timing is counted.
+    """
+
+    say("Autostart behaviour test\n")
+    
+    tobj = pct.CodeTiming(autostart=True)
+    
+    say("Duration start ...")
+    time_passes(DURATION)
+    tobj.elapsed()
+    
+    
+    say("Duration start ...")
+    time_passes(DURATION)
+    tobj.elapsed()
+    
+    say("Duration start ...")
+    time_passes(DURATION)
+    tobj.elapsed()
+    
+    say("Stats:   {}", tobj.get_stats())
+    say("Display: {}", tobj.display_stats())
+    nl(2)
 
 #-------------------------------------------------------------------------------
 # Function tracing and recursion
@@ -411,18 +442,20 @@ def errorf(format_string, *items):
 # Execution hook
 #===============================================================================
 if __name__ == "__main__":
-    RAND_RUNS = 30
-    randomised_test(RAND_RUNS)
-    
-    nesting_test()
-    
-    ARG = 5
-    recursion_test(ARG)
+    # RAND_RUNS = 30
+    # randomised_test(RAND_RUNS)
+    #
+    # nesting_test()
+    #
+    # autostart_test()
+    #
+    # ARG = 5
+    # recursion_test(ARG)
     
     RUNS = 10
-    test1(RUNS)
-    test2(RUNS)
-    test3(RUNS)
+    #test1(RUNS)
+    #test2(RUNS)
+    #test3(RUNS)
 
     
     pass

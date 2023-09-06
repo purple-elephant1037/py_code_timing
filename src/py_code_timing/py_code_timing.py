@@ -10,6 +10,7 @@ import time
 import math
 import functools
 
+
 #===============================================================================
 # Global Constants
 # -- Using strings rather than Enums for simpler APIs
@@ -53,9 +54,6 @@ class CodeTiming(object):
     
     # Global enable
     GLOBAL_ENABLE = True
-    
-    # Specifies if named timing objects are uniquely defined.
-    UNIQUE_OBJECT = True
 
     def __init__(self, name="", timeunit=MILLISECS_TIMEUNIT, timetype=TOTAL_TIMETYPE, autostart=False):
         """
@@ -156,16 +154,16 @@ class CodeTiming(object):
                 _errorf("CodeTiming.set_name: CodeTiming object already named '{}'", self._timer_name)
     
         if new_name:
+            if not new_name.isidentifier():
+                _errorf("CodeTiming: set_name - can only use identifiers to name timed objects: {}", new_name)
+            
             # Set the time_name to new_name
             self._timer_name = new_name
             
             # Defines DB entry if name not in DB 
             if new_name not in self._timing_map:
                 self._timing_map[new_name] = self._timing_info
-            
-            elif CodeTiming.UNIQUE_OBJECT:
-                _errorf("set_name: When CodeTiming.UNIQUE_OBJECT is True, can't redefine an already existing named object: {}", new_name)
-                
+                                            
             # Ensure that local object aligns with DB entry (Note: Thread safety)
             self._timing_info = self._timing_map[new_name]
             
@@ -182,7 +180,7 @@ class CodeTiming(object):
         if not self._is_enabled: return
         
         self._timing_info.set_start_time(self._get_time())
-
+        
 
     def elapsed(self):
         """
@@ -200,7 +198,7 @@ class CodeTiming(object):
             # If value is None at this point, then no autostart is needed.
             # Hence, return None
             return None
-                
+         
         return value
 
 
@@ -230,9 +228,9 @@ class CodeTiming(object):
 
 
     @classmethod
-    def get_stats_for_name(_, name):
+    def get_stats_by_name(_, name):
         """
-        Returns _TimingInfo as a map with fields:
+        Returns named timing object _TimingInfo as a map with fields:
             mean, std_dev, max, min, events, total
         """
         return CodeTiming._fetch_timing_info(name).get_stats()
@@ -272,7 +270,7 @@ class CodeTiming(object):
 
 
     @classmethod
-    def display_stats_for_name(cls, name, hms=True, shape=DISPLAY_HORIZONTALLY, skip=0):
+    def display_stats_by_name(cls, name, hms=True, shape=DISPLAY_HORIZONTALLY, skip=0):
         """
         Displays stats info for named timing object:
             mean, std_dev, max, min, events, total
@@ -330,13 +328,16 @@ class CodeTiming(object):
 
 
     #---------------------------------------------------------------------------
-    # Context Manager (for supporting with-statement)
+    # Context Manager (for supporting the with-statement)
     #---------------------------------------------------------------------------
     def __enter__(self):
+        self.start()
         return self
 
 
     def __exit__(self, _1, _2, _3):
+        self.elapsed()
+
         # Exceptions gets propagated.
         return False
 
@@ -355,7 +356,7 @@ class CodeTiming(object):
             _errorf("CodeTiming : Empty name - can't locate anonymous timing objects.")
             
         try:
-            return self._timing_map[name]
+            return CodeTiming._NAMED_TIMING_DB[name]
         except:
             _errorf("CodeTiming: Unknown name for timer: '{}'", name)
 
